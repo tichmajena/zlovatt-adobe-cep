@@ -10,18 +10,18 @@ const Config = {
   defaults: {
     userDebug: false,
     lastVersion: "0.0.0",
-    lastAEVersion: ""
+    lastAEVersion: "",
   } as any,
 
   globals: {
     debug: process.env.NODE_ENV === "development",
     resourcePath: path.join(
       process.env.APPDATA || process.env.HOME + "/Library/Application Support",
-      "zlovatt",
+      "tmajena",
       pkg.cep.name
     ),
-    logMaxSize: 5000000
-  }
+    logMaxSize: 5000000,
+  },
 };
 
 export default Config;

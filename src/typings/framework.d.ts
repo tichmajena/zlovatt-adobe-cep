@@ -6,7 +6,7 @@ declare class ESStatus {
   msg: string;
 
   /** Return data, if applicable */
-  data?: any;
+  data?: unknown;
 
   /** Error, if applicable */
   err?: ZLError;

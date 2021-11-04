@@ -8,6 +8,7 @@
 
   import Config from "../../config";
   import Log from "../utils/log";
+  import Muruki from "../components/Muruki.svelte";
 
   export let name;
 
@@ -27,14 +28,14 @@
     hour12: true,
     hour: "numeric",
     minute: "2-digit",
-    second: "2-digit"
+    second: "2-digit",
   });
 
   function helloExtendscript() {
     const host = `$.global["${Config.id}"]`;
-    // csInterface
-    //   .evalExtendscript(`${host}.appName()`)
-    //   .then((id) => alert(`The host app is "${id}"`));
+    csInterface
+      .evalExtendscript(`${host}.appName()`)
+      .then((id) => alert(`The host app is "${id}"`));
 
     csInterface
       .evalExtendscript(`${host}.runCommand()`)
@@ -64,7 +65,86 @@
   }
 </script>
 
-<style>
+<svelte:head>
+  <link
+    rel="stylesheet"
+    href="./node_modules/@adobe/spectrum-css/dist/spectrum-core.css"
+  />
+  <link
+    rel="stylesheet"
+    href="./node_modules/@adobe/spectrum-css/dist/spectrum-darkest.css"
+  />
+  <link rel="stylesheet" href="./global.css" />
+</svelte:head>
+
+<Muruki />
+
+<!-- <main class="spectrum spectrum--darkest">
+  <Say value="Oh" />
+  <h1>Hello {$prefix} {name}!</h1>
+  <input
+    type="text"
+    placeholder="Prefix"
+    name="field"
+    bind:value={$prefix}
+    class="spectrum-Textfield spectrum-Textfield--quiet"
+  />
+  <input
+    type="text"
+    placeholder="Enter your name"
+    name="field"
+    bind:value={name}
+    class="spectrum-Textfield spectrum-Textfield--quiet"
+  />
+
+  <h3>The time is {formatter.format($time)}</h3>
+
+  <textarea
+    class="spectrum-Textfield spectrum-Textfield--multiline"
+    bind:value={aeDataText}
+  />
+
+  <p>
+    The panel has been open for {$elapsed}
+    {$elapsed === 1 ? "second" : "seconds"}
+  </p>
+
+  <button
+    class="spectrum-ActionButton spectrum-ActionButton--quiet"
+    on:click={helloSpectrum}
+  >
+    <svg
+      class="spectrum-Icon spectrum-Icon--sizeS"
+      focusable="false"
+      aria-hidden="true"
+      aria-label="Info"
+    >
+      <use xlink:href="#spectrum-css-icon-InfoMedium" />
+      <span class="spectrum-ActionButton-label">Info</span>
+    </svg>
+  </button>
+
+  <button class="spectrum-ActionButton" on:click={helloExtendscript}>
+    <span class="spectrum-ActionButton-label">Hello Extendscript</span>
+  </button>
+
+  <button class="spectrum-ActionButton" on:click={helloNode}>
+    <span class="spectrum-ActionButton-label">Hello Node</span>
+  </button>
+
+  <button class="spectrum-ActionButton" on:click={move}>
+    <span class="spectrum-ActionButton-label">Animate</span>
+  </button>
+
+  {#if animate}
+    <div id="slider" transition:slide>¯\_(ツ)_/¯</div>
+  {/if}
+</main> -->
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
   h1 {
     color: white;
     margin-bottom: 20px;
@@ -97,68 +177,3 @@
     text-align: center;
   }
 </style>
-
-<svelte:head>
-  <link
-    rel="stylesheet"
-    href="./node_modules/@adobe/spectrum-css/dist/spectrum-core.css" />
-  <link
-    rel="stylesheet"
-    href="./node_modules/@adobe/spectrum-css/dist/spectrum-darkest.css" />
-  <link rel="stylesheet" href="./global.css" />
-</svelte:head>
-<main class="spectrum spectrum--darkest">
-  <Say value="Oh" />
-  <h1>Hello {$prefix} {name}!</h1>
-  <input
-    type="text"
-    placeholder="Prefix"
-    name="field"
-    bind:value={$prefix}
-    class="spectrum-Textfield spectrum-Textfield--quiet" />
-  <input
-    type="text"
-    placeholder="Enter your name"
-    name="field"
-    bind:value={name}
-    class="spectrum-Textfield spectrum-Textfield--quiet" />
-
-  <h3>The time is {formatter.format($time)}</h3>
-
-  <textarea
-    class="spectrum-Textfield spectrum-Textfield--multiline"
-    bind:value={aeDataText} />
-
-  <p>
-    The panel has been open for {$elapsed} {$elapsed === 1 ? 'second' : 'seconds'}
-  </p>
-
-  <button
-    class="spectrum-ActionButton spectrum-ActionButton--quiet"
-    on:click={helloSpectrum}>
-    <svg
-      class="spectrum-Icon spectrum-Icon--sizeS"
-      focusable="false"
-      aria-hidden="true"
-      aria-label="Info">
-      <use xlink:href="#spectrum-css-icon-InfoMedium" />
-      <span class="spectrum-ActionButton-label">Info</span>
-    </svg>
-  </button>
-
-  <button class="spectrum-ActionButton" on:click={helloExtendscript}>
-    <span class="spectrum-ActionButton-label">Hello Extendscript</span>
-  </button>
-
-  <button class="spectrum-ActionButton" on:click={helloNode}>
-    <span class="spectrum-ActionButton-label">Hello Node</span>
-  </button>
-
-  <button class="spectrum-ActionButton" on:click={move}>
-    <span class="spectrum-ActionButton-label">Animate</span>
-  </button>
-
-  {#if animate}
-    <div id="slider" transition:slide>¯\_(ツ)_/¯</div>
-  {/if}
-</main>

@@ -55,7 +55,7 @@ const certOptions = {
   password: process.env.CEP_SIGN_PASSWORD,
 
   // The path that the certificate will be exported to
-  output: `${CERT_DIR}/cert.p12`
+  output: `${CERT_DIR}/cert.p12`,
 };
 
 // Set env vars
@@ -97,7 +97,7 @@ async function signPackage(cb) {
       input: DIST_DIR,
       output: RELEASE_PATH,
       cert: certOptions.output,
-      password: certOptions.password
+      password: certOptions.password,
     },
     (error, result) => {
       if (error) {
@@ -151,7 +151,7 @@ gulp.task("export:jsxbin", (cb) => {
   const sourceES = `${DIST_DIR}/extendscript.js`;
 
   execSync(`node "${jsxbinExporter}" -n "${sourceES}"`, {
-    encoding: "UTF-8"
+    encoding: "UTF-8",
   });
 
   del(`${DIST_DIR}/extendscript.js`);
@@ -169,7 +169,7 @@ gulp.task("watch:jsx", function () {
     .pipe(
       gulpWebpack({
         watch: true,
-        config
+        config,
       })
     )
     .pipe(gulp.dest("dist/"));
@@ -181,12 +181,12 @@ async function watchCEP(cb) {
 
   new WebpackDevServer(webpack(config), {
     stats: {
-      colors: true
+      colors: true,
     },
     contentBase: path.join(__dirname, "dist"),
     publicPath: "/",
     port: devPort,
-    hot: true
+    hot: true,
   }).listen(devPort, "localhost", function (err) {
     if (err) {
       Log.error(err, "watchCEP");
@@ -211,14 +211,14 @@ function launchDebugger() {
     launchCmd = spawn("start", [`http://localhost:${devPort}`], {
       shell: true,
       detached: true,
-      stdio: "ignore"
+      stdio: "ignore",
     });
   } else {
     launchCmd = spawn("cefclient", ["--url=localhost:3007"], {
       cwd: cefClientPath,
       shell: true,
       detached: true,
-      stdio: "ignore"
+      stdio: "ignore",
     });
   }
 
@@ -237,7 +237,7 @@ function logStatus(cb) {
 
 function clean(cb) {
   del.sync([CERT_DIR, DIST_DIR, RELEASE_DIR], {
-    force: true
+    force: true,
   });
 
   cb();
@@ -245,12 +245,32 @@ function clean(cb) {
 
 gulp.task("reset", gulp.series(logStatus, clean));
 
+gulp.task("watch:css", function () {
+  const postcss = require("gulp-postcss");
+  return gulp
+    .src("./src/**/*.css")
+    .pipe(postcss([require("tailwindcss"), require("autoprefixer")]))
+    .pipe(
+      gulpWebpack({
+        watch: true,
+        //config,
+      })
+    )
+    .pipe(gulp.dest("dist/"));
+});
+
 gulp.task(
   "default",
-  gulp.series("reset", gulp.parallel("watch:jsx", watchCEP))
+  gulp.series("reset", gulp.parallel("watch:jsx", watchCEP, "watch:css"))
 );
 
 gulp.task(
   "build",
   gulp.series("reset", "build:jsx", "build:cep", "export:jsxbin", signPackage)
 );
+
+// gulp.task("html", function () {
+//   return gulp.src("./src/**/*.html").pipe(gulp.dest("dist/"));
+// });
+
+//gulp.task("default", gulp.series("css", "html"));
