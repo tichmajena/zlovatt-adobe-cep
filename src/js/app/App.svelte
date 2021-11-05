@@ -140,11 +140,7 @@
     <div id="slider" transition:slide>¯\_(ツ)_/¯</div>
   {/if}
 </main> -->
-<style global lang="postcss">
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
+<style>
   h1 {
     color: white;
     margin-bottom: 20px;

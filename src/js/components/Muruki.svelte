@@ -9,6 +9,7 @@
   import Addbutton from "./Addbutton.svelte";
   import Imagefield from "./Imagefield.svelte";
   import Nav from "./Nav.svelte";
+  import Auth from "./Auth.svelte";
   // import { goto } from "$app/navigation";
   import Folder from "./Folder.svelte";
 
@@ -404,7 +405,6 @@
   }
 </script>
 
-<div class="bg-blue-500">Hey</div>
 <Nav>
   <div class="min-h-full flex">
     <div class="p-5 min-h-full w-1/4 bg-gray-800 relative">
@@ -553,6 +553,7 @@
       <!-- Edit Area -->
       <section class="w-full py-10 px-7 ">
         <!-- Title . Rendered -->
+        <Auth />
         <input
           type="text"
           bind:value={title}

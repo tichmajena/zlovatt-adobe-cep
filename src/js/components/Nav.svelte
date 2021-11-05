@@ -1,12 +1,20 @@
 <script>
   // import { goto, prefetchRoutes } from "$app/navigation";
+  import { onMount } from "svelte";
+  import { state } from "../app/store";
+  export let projects = [];
+  let site = "https://www.shuva.co.zw/muruki/wp-json";
+
+  onMount(async () => {
+    const res = await fetch(`${site}/wp/v2/project?author=${$state.user.id}`);
+
+    projects = await res.json();
+  });
 
   let deleting = false;
   let selected = [];
   let check = false;
   let yes;
-
-  export let projects = [];
   //import "../app.css";
   import { dom } from "../app/store";
 

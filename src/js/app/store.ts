@@ -14,6 +14,11 @@ export const time = readable(new Date(), function start(set) {
 
 export const start = new Date();
 
+export const state = writable({
+  user: undefined,
+  loggedin: false,
+  rest: "https://www.shuva.co.zw/muruki/wp-json",
+});
 export const inputarry = writable([]);
 export const artworkArry = writable([]);
 export const harvest = writable([]);
