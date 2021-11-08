@@ -11,13 +11,15 @@ export const time = readable(new Date(), function start(set) {
     clearInterval(interval);
   };
 });
-
+export const consol = writable();
 export const start = new Date();
-
+export const projectArry = writable([]);
 export const state = writable({
   user: undefined,
-  loggedin: false,
+  loggedin: true,
   rest: "https://www.shuva.co.zw/muruki/wp-json",
+  pi: undefined,
+  ai: undefined,
 });
 export const inputarry = writable([]);
 export const artworkArry = writable([]);

@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== "production") {
   csInterface.evalExtendscript(
     [
       `$.global.extensionPath = ${JSON.stringify(extensionPath)};`,
-      `$.evalFile(${JSON.stringify(jsxbinPath)})`
+      `$.evalFile(${JSON.stringify(jsxbinPath)})`,
     ].join("\n")
   );
 }

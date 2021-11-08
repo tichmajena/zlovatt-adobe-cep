@@ -3,14 +3,19 @@
   import { derived } from "svelte/store";
   import { slide } from "svelte/transition";
 
-  import { time, start, prefix } from "./store";
+  import { time, start, prefix, inputarry } from "./store";
   import Say from "../components/Say.svelte";
 
   import Config from "../../config";
   import Log from "../utils/log";
   import Muruki from "../components/Muruki.svelte";
+  import * as path from "path";
 
+  const paths = csInterface.getExtensionPath();
+  const syspath = csInterface.getSystemPath("extension");
+  //alert("SYS: " + syspath.substring(38, syspath.length));
   export let name;
+  let variabl;
 
   let animate = false;
   let foo: number;
@@ -53,10 +58,39 @@
       });
   }
 
+  function seePath() {
+    const host = `$.global["${Config.id}"]`;
+
+    csInterface.evalExtendscript(host + ".scrape()").then((data) => {
+      $inputarry = data;
+      alert(data);
+    });
+  }
+
+  function runGenerate() {
+    const host = `$.global["${Config.id}"]`;
+    let parts = paths.split("/");
+    parts.splice(parts.length - 1, 1);
+    let newPath = parts.join("\\");
+    newPath += "\\muruku_ps_svelte";
+    let nzira = newPath + "\\presets";
+    alert(nzira);
+    let thefile = nzira.replace(/\\/g, "\\\\");
+    alert(thefile);
+
+    // csInterface.evalExtendscript(`$.evalFile(${JSON.stringify(thefile)})`);
+    csInterface
+      .evalExtendscript(host + '.generate("' + thefile + '")')
+      .then((data) => {
+        variabl = data;
+        // alert(data);
+      });
+  }
+
   function helloNode() {
     const os = require("os");
     const user = os.userInfo().username;
-
+    variabl = os.userInfo();
     alert(`Hello from Node, ${user}`);
   }
 

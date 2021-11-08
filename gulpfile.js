@@ -245,23 +245,23 @@ function clean(cb) {
 
 gulp.task("reset", gulp.series(logStatus, clean));
 
-gulp.task("watch:css", function () {
-  const postcss = require("gulp-postcss");
-  return gulp
-    .src("./src/**/*.css")
-    .pipe(postcss([require("tailwindcss"), require("autoprefixer")]))
-    .pipe(
-      gulpWebpack({
-        watch: true,
-        //config,
-      })
-    )
-    .pipe(gulp.dest("dist/"));
-});
+// gulp.task("watch:css", function () {
+//   const postcss = require("gulp-postcss");
+//   return gulp
+//     .src("./src/**/*.css")
+//     .pipe(postcss([require("tailwindcss"), require("autoprefixer")]))
+//     .pipe(
+//       gulpWebpack({
+//         watch: true,
+//         //config,
+//       })
+//     )
+//     .pipe(gulp.dest("dist/"));
+// });
 
 gulp.task(
   "default",
-  gulp.series("reset", gulp.parallel("watch:jsx", watchCEP, "watch:css"))
+  gulp.series("reset", gulp.parallel("watch:jsx", watchCEP))
 );
 
 gulp.task(

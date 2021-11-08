@@ -1,14 +1,44 @@
 <script>
   // import { goto, prefetchRoutes } from "$app/navigation";
   import { onMount } from "svelte";
-  import { state } from "../app/store";
+  import { dom, state, projectArry } from "../app/store";
+  import { tweened } from "svelte/motion";
+  import { cubicOut } from "svelte/easing";
   export let projects = [];
-  let site = "https://www.shuva.co.zw/muruki/wp-json";
+  let valid;
+  let userr;
 
   onMount(async () => {
-    const res = await fetch(`${site}/wp/v2/project?author=${$state.user.id}`);
+    userr = JSON.parse(localStorage.getItem("user"));
+    $state.user = userr.profile;
+    if (userr.token) {
+      const validate = await fetch(
+        $state.rest + "/jwt-auth/v1/token/validate",
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + userr.token,
+          },
+        }
+      );
+      valid = await validate.json();
 
-    projects = await res.json();
+      if (valid.data.status == "200") {
+        $state.loggedin = true;
+        const res = await fetch(
+          `${$state.rest}/wp/v2/project?author=${$state.user.id}`
+        );
+
+        if (res.ok) {
+          projects = await res.json();
+          $projectArry = projects;
+        } else {
+          projects = [];
+        }
+      }
+    } else {
+      projects = [];
+    }
   });
 
   let deleting = false;
@@ -16,11 +46,6 @@
   let check = false;
   let yes;
   //import "../app.css";
-  import { dom } from "../app/store";
-
-  import { tweened } from "svelte/motion";
-  import { cubicOut } from "svelte/easing";
-  import { cubicIn } from "svelte/easing";
 
   const the_margin = tweened(0, {
     duration: 400,
@@ -72,10 +97,19 @@
       console.log(data);
     });
   }
+
+  function gotoProject(i) {
+    $state.pi = i;
+  }
 </script>
 
 <div class="fixed w-full h-full z-0">
   <div class="w-1/5 bg-gray-900 h-full">
+    <button
+      on:click={() => {
+        check = !check;
+      }}>Delete</button
+    >
     {#if check}
       <div class="p-4">
         <button on:click={trash} class="bg-red-500">Delete</button>
@@ -84,29 +118,35 @@
     <div class="text-white p-5">
       <div class="text-white text-2xl mb-4">My Projects</div>
       <div>
-        <ul>
-          {#each projects as project, i}
-            <a sveltekit:prefetch href={project.slug}>
-              <li class="border-b border-gray-700 hover:bg-gray-700 text-2xl">
+        {#await projects}
+          waiting...
+        {:then data}
+          <ul>
+            {#each $projectArry as project, i}
+              <li
+                on:click={() => gotoProject(i)}
+                class="border-b border-gray-700 hover:bg-gray-700 text-2xl"
+              >
                 {project.title.rendered}
                 <div class="text-sm text-green-600">
                   {project.formatted_date}
                 </div>
               </li>
-            </a>
-            {#if check}
-              <label for={i}>
-                <input
-                  id={i}
-                  group={yes}
-                  value={i}
-                  type="checkbox"
-                  on:click={select}
-                />
-              </label>
-            {/if}
-          {/each}
-        </ul>
+
+              {#if check}
+                <label for={i}>
+                  <input
+                    id={i}
+                    group={yes}
+                    value={i}
+                    type="checkbox"
+                    on:click={select}
+                  />
+                </label>
+              {/if}
+            {/each}
+          </ul>
+        {/await}
       </div>
     </div>
   </div>

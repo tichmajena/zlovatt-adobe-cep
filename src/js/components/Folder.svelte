@@ -7,7 +7,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let obj;
+  export let obj = { fields: [] };
   export let i;
   export let ii;
 

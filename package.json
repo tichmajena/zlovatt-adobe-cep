@@ -16,7 +16,7 @@
   "cep": {
     "name": "Muruki",
     "id": "com.muruki.imajenation",
-    "debugInProduction": true,
+    "debugInProduction": false,
     "hosts": "AEFT, PHXS, PHSP",
     "extensions": [
       {

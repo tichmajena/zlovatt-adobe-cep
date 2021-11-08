@@ -1,9 +1,18 @@
 <script>
   import { fly, fade, scale } from "svelte/transition";
-
+  import * as csInterface from "cep-interface";
+  import Config from "../../config";
   import Textfield from "./Textfield.svelte";
   import Textarea from "./Textarea.svelte";
-  import { inputarry, artworkArry, harvest, dom } from "../app/store";
+  import {
+    projectArry,
+    state,
+    inputarry,
+    artworkArry,
+    harvest,
+    dom,
+    consol,
+  } from "../app/store";
   import Repeater from "./Repeater.svelte";
   import Smartobject from "./Smartobject.svelte";
   import Addbutton from "./Addbutton.svelte";
@@ -13,20 +22,24 @@
   // import { goto } from "$app/navigation";
   import Folder from "./Folder.svelte";
 
-  export let project;
-  console.log("PROJECT : ", project);
+  let project;
   export let session;
   export let slug;
   let input_json;
 
   let title = "";
   let proj_string = [];
-  if (project !== undefined) {
-    title = project.title.rendered;
-    if (project.proj_string !== "") {
-      proj_string = JSON.parse(project.proj_string);
-      $inputarry = proj_string.fields;
-      $artworkArry = proj_string.posts;
+
+  $: {
+    project = $projectArry[$state.pi];
+
+    if (project !== undefined) {
+      title = project.title.rendered;
+      if (project.proj_string !== "") {
+        proj_string = JSON.parse(project.proj_string);
+        $inputarry = proj_string.fields;
+        $artworkArry = proj_string.posts;
+      }
     }
   }
   let editor;
@@ -174,6 +187,17 @@
     console.log($artworkArry);
   }
 
+  function updateArtwork() {
+    $artworkArry[$state.ai] = $inputarry;
+    $state.ai = undefined;
+  }
+
+  function newArtwork() {
+    clearFields();
+    deactivate();
+    $state.ai = undefined;
+  }
+
   function clearFields() {
     $inputarry = $inputarry.map((fieldObj, i) => {
       let clearedObj = {};
@@ -183,7 +207,10 @@
         clearedObj.field = fieldObj.field;
       }
 
-      if ($inputarry[i].meta === "smart_object") {
+      if (
+        $inputarry[i].meta === "smart_object" ||
+        $inputarry[i].meta === "folder"
+      ) {
         clearedObj.fields = $inputarry[i].fields.map((innerFieldObj, ii) => {
           let clearedInnerObj = {};
           if ($inputarry[i].fields[ii].meta === "image_field") {
@@ -220,11 +247,13 @@
   }
 
   function activate(i) {
-    deactivate();
-    $dom.active.is = true;
-    $dom.mode.nested = true;
-    $dom.active.i = i;
-    $inputarry[i].is_active = true;
+    if (!$inputarry[i].is_active) {
+      deactivate();
+      $dom.active.is = true;
+      $dom.mode.nested = true;
+      $dom.active.i = i;
+      $inputarry[i].is_active = true;
+    }
   }
 
   function deactivate() {
@@ -302,6 +331,7 @@
   function handleActivate(event) {
     activate(event.detail.index);
   }
+
   function handleRemoveField(event) {
     removeField(event.detail.index);
   }
@@ -310,7 +340,7 @@
     removeSubField(event.detail.i, event.detail.ii);
   }
 
-  function callDownloadJson() {
+  function handleDownloadJson() {
     sanitizeArry();
     console.log($harvest);
     let postObj = {
@@ -330,31 +360,57 @@
       posts: $artworkArry,
     };
 
+    let user = JSON.parse(localStorage.getItem("user"));
+    let token = JSON.parse(localStorage.getItem("token"));
+
     let body = {
       title: title,
       status: "publish",
-      author: session.id,
+      author: user.id,
       content: "",
       proj_string: JSON.stringify(project),
       proj_json: JSON.stringify($harvest),
     };
 
-    console.log(body);
+    $consol = token;
 
-    let res = await fetch("/slug.json", {
-      method: "post",
-      //headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
+    if (token) {
+      $consol = $state.rest + "/wp/v2/project";
+      let res = await fetch($state.rest + "/wp/v2/project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(body),
+      });
 
-    if (res.ok) {
-      goto(`/${data.slug}`, { replaceState: true });
+      const data = await res.json();
+      $consol = data;
+      if (res.ok) {
+        $consol = data;
+
+        const res = await fetch(
+          `${$state.rest}/wp/v2/project?author=${user.id}`
+        );
+
+        if (res.ok) {
+          projects = await res.json();
+          $projectArry = projects;
+        }
+        // goto(`/${data.slug}`, { replaceState: true });
+      }
+      console.log(data);
+    } else {
+      //login
     }
-    console.log(data);
   }
 
   async function editPost() {
+    let user = JSON.parse(localStorage.getItem("user"));
+    let token = JSON.parse(localStorage.getItem("token"));
+    sanitizeArry();
+
     let projectbody = {
       title,
       fields: $inputarry,
@@ -368,11 +424,11 @@
         colors: "",
       },
     };
-
+    $consol = json;
     let body = {
       title: title,
       status: "publish",
-      author: session.id,
+      author: user.id,
       content: "",
       proj_string: JSON.stringify(projectbody),
       proj_json: JSON.stringify(json),
@@ -380,15 +436,30 @@
 
     console.log(body, project);
     console.log(project.slug);
-    const res = await fetch(`/${project.id}.json`, {
-      body: JSON.stringify(body),
-      method: "put",
-    });
-    const data = await res.json();
+    if (token) {
+      const res = await fetch($state.rest + "/wp/v2/project/" + project.id, {
+        body: JSON.stringify(body),
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+      const data = await res.json();
 
-    console.log(data, "Im PUTTTTYYYYYYY");
-    if (res.ok) {
-      goto(`/${data.slug}`, { replaceState: true });
+      console.log(data, "Im PUTTTTYYYYYYY");
+      if (res.ok) {
+        //  goto(`/${data.slug}`, { replaceState: true });
+
+        const res = await fetch(
+          `${$state.rest}/wp/v2/project?author=${user.id}`
+        );
+
+        if (res.ok) {
+          projects = await res.json();
+          $projectArry = projects;
+        }
+      }
     }
   }
 
@@ -403,13 +474,38 @@
     $inputarry = fields;
     input_json = "";
   }
+
+  function runScrapper() {
+    const host = `$.global["${Config.id}"]`;
+
+    csInterface.evalExtendscript(host + ".scrape()").then((data) => {
+      $inputarry = data.fields;
+      $dom.mode.design = !$dom.mode.design;
+      //alert($inputarry.length);
+    });
+  }
+
+  function runRuka() {
+    const host = `$.global["${Config.id}"]`;
+
+    sanitizeArry();
+    // let theArtworks = JSON.stringify($harvest);
+    // alert(typeof theArtworks);
+    let aarts = JSON.stringify({ title, artworks: $harvest });
+    csInterface.evalExtendscript(host + ".ruka(" + aarts + ")");
+  }
+
+  function gotoArtwork(i) {
+    $state.ai = i;
+    $inputarry = $artworkArry[$state.ai];
+  }
 </script>
 
 <Nav>
   <div class="min-h-full flex">
-    <div class="p-5 min-h-full w-1/4 bg-gray-800 relative">
+    <div class="p-5 min-h-full w-1/12 bg-gray-800 relative">
       <!-- Cards -->
-      <div class="fixed">
+      <div class="fixed w-1/12 overflow-hidden">
         <div
           on:click={() => {
             $dom.show_menu = !$dom.show_menu;
@@ -492,6 +588,7 @@
         </div>
         <div class="w-full flex flex-row justify-between">
           <div class="text-gray-200 text-2xl">Artworks</div>
+
           <div class="flex flex-row text-gray-300 p-2">
             <div class="pl-2">
               <svg
@@ -527,11 +624,18 @@
             </div>
           </div>
         </div>
-        <div>
-          <ul class="mt-10">
-            {#each $artworkArry as flyer}
-              <div class="border-b border-gray-600  text-sm flex flex-row">
-                <div class="rounded-lg p-2">Image</div>
+        <div style="height: 90vh; overflow: auto;">
+          <!-- <pre
+            class="text-xs text-white">
+            {JSON.stringify($inputarry, null, 2)}
+          </pre> -->
+          <ul class="mt-10 flex flex-col-reverse">
+            {#each $artworkArry as flyer, i}
+              <div
+                on:click={() => gotoArtwork(i)}
+                class="border-b border-gray-600  text-sm flex flex-row"
+              >
+                <!-- <div class="rounded-lg p-2">Image</div> -->
                 <div class="text-gray-400  p-2">
                   {#each flyer as field}
                     <div class="p-1">
@@ -542,18 +646,16 @@
               </div>
             {/each}
           </ul>
-          <!-- <pre
-          class="text-white text-xs">
-              {JSON.stringify($inputarry, null, 2)}
-        </pre> -->
         </div>
       </div>
     </div>
-    <div class="w-3/4 bg-gray-700">
+    <div class="w-11/12 bg-gray-700">
       <!-- Edit Area -->
       <section class="w-full py-10 px-7 ">
         <!-- Title . Rendered -->
-        <Auth />
+        {#if !$state.loggedin}
+          <Auth />
+        {/if}
         <input
           type="text"
           bind:value={title}
@@ -604,19 +706,25 @@
                   >
                 </div>
 
-                <textarea
+                <!-- <textarea
                   bind:value={input_json}
                   name=""
                   id=""
                   cols="15"
                   rows="5"
-                />
-                <Addbutton on:click={generateFields} color={"bg-gray-500"}>
+                /> -->
+                <!-- <Addbutton on:click={generateFields} color={"bg-gray-500"}>
                   <span id="icon text-white" /><span
                     class="text-center w-full"
                     slot="text">Generate Fields</span
                   >
-                </Addbutton>
+                </Addbutton> -->
+                <Addbutton on:click={runScrapper} color={"bg-gray-500"}
+                  ><span id="icon text-white" /><span
+                    class="text-center w-full"
+                    slot="text">Generate</span
+                  ></Addbutton
+                >
                 <Addbutton on:click={saveFields} color={"bg-gray-500"}
                   ><span id="icon text-white" /><span
                     class="text-center w-full"
@@ -628,59 +736,61 @@
           {/if}
 
           <div class="m-4 w-4/5 px-10">
-            {#each $inputarry as input, i}
-              <!--  If input === codeInput -->
-              {#if input.meta === "textfield"}
-                <Textfield
-                  obj={$inputarry[i]}
-                  {i}
-                  on:removeField={handleRemoveField}
-                />
-              {/if}
+            {#key $inputarry}
+              {#each $inputarry as input, i}
+                {#if input.meta === "textfield"}
+                  <Textfield
+                    obj={$inputarry[i]}
+                    {i}
+                    on:removeField={handleRemoveField}
+                  />
+                {/if}
 
-              <!--  If input === textareaField -->
-              {#if input.meta === "textarea"}
-                <Textarea
-                  on:removeField={handleRemoveField}
-                  obj={$inputarry[i]}
-                  {i}
-                />
-              {/if}
+                {#if input.meta === "textarea"}
+                  <Textarea
+                    on:removeField={handleRemoveField}
+                    obj={$inputarry[i]}
+                    {i}
+                  />
+                {/if}
 
-              {#if input.meta === "image_field"}
-                <Imagefield
-                  on:removeField={handleRemoveField}
-                  obj={$inputarry[i]}
-                  {i}
-                />
-              {/if}
+                {#if input.meta === "image_field"}
+                  <Imagefield
+                    on:removeField={handleRemoveField}
+                    obj={$inputarry[i]}
+                    {i}
+                  />
+                {/if}
 
-              {#if input.meta === "repeater"}
-                <Repeater on:repeat={repeat} obj={$inputarry[i]} {i} />
-              {/if}
+                {#if input.meta === "repeater"}
+                  <Repeater on:repeat={repeat} obj={$inputarry[i]} {i} />
+                {/if}
 
-              {#if input.meta === "smart_object"}
-                <Smartobject
-                  on:activate={handleActivate}
-                  on:deactivate={deactivate}
-                  on:removeField={handleRemoveField}
-                  on:removeSubField={handleRemoveSubField}
-                  obj={$inputarry[i]}
-                  {i}
-                />
-              {/if}
+                {#if input.meta === "smart_object"}
+                  <Smartobject
+                    on:activate={handleActivate}
+                    on:deactivate={deactivate}
+                    on:removeField={handleRemoveField}
+                    on:removeSubField={handleRemoveSubField}
+                    obj={$inputarry[i]}
+                    {i}
+                  />
+                {/if}
 
-              {#if input.meta === "folder"}
-                <Folder
-                  on:activate={handleActivate}
-                  on:deactivate={deactivate}
-                  on:removeField={handleRemoveField}
-                  on:removeSubField={handleRemoveSubField}
-                  obj={$inputarry[i]}
-                  {i}
-                />
-              {/if}
-            {/each}
+                {#if input.meta === "folder"}
+                  <Folder
+                    on:activate={handleActivate}
+                    on:deactivate={deactivate}
+                    on:removeField={handleRemoveField}
+                    on:removeSubField={handleRemoveSubField}
+                    obj={$inputarry[i]}
+                    {i}
+                  />
+                {/if}
+              {/each}
+            {/key}
+            <pre
+              class="text-xs text-white">{JSON.stringify($consol, null, 2)}</pre>
           </div>
 
           {#if !$dom.mode.design}
@@ -689,13 +799,30 @@
                 transition:scale
                 class="container mx-auto h-full w-1/5 flex flex-col px-10 justify-center items-center"
               >
-                <Addbutton on:click={saveArtwork} color={"bg-yellow-500"}
-                  ><span id="icon text-white" /><span
-                    class="text-center w-full"
-                    slot="text">Save Artwork</span
-                  ></Addbutton
-                >
-                {#if slug === "new"}
+                {#if $state.ai === !undefined}
+                  <Addbutton on:click={newArtwork} color={"bg-yellow-500"}
+                    ><span id="icon text-white" /><span
+                      class="text-center w-full"
+                      slot="text">New Artwork</span
+                    ></Addbutton
+                  >
+                {/if}
+                {#if $state.ai === undefined}
+                  <Addbutton on:click={saveArtwork} color={"bg-yellow-500"}
+                    ><span id="icon text-white" /><span
+                      class="text-center w-full"
+                      slot="text">Save Artwork</span
+                    ></Addbutton
+                  >
+                {:else}
+                  <Addbutton on:click={updateArtwork} color={"bg-yellow-500"}
+                    ><span id="icon text-white" /><span
+                      class="text-center w-full"
+                      slot="text">Update Artwork</span
+                    ></Addbutton
+                  >
+                {/if}
+                {#if $state.pi === undefined}
                   <Addbutton on:click={publish} color={"bg-yellow-500"}
                     ><span id="icon text-white" /><span
                       class="text-center w-full"
@@ -710,7 +837,7 @@
                     ></Addbutton
                   >
                 {/if}
-                <Addbutton on:click={callDownloadJson} color={"bg-yellow-500"}
+                <Addbutton on:click={handleDownloadJson} color={"bg-yellow-500"}
                   ><span id="icon text-white" /><span
                     class="text-center w-full"
                     slot="text">Download JSON</span
@@ -720,6 +847,13 @@
                   ><span id="icon text-white" /><span
                     class="text-center w-full"
                     slot="text">Edit Fields</span
+                  ></Addbutton
+                >
+
+                <Addbutton on:click={runRuka} color={"bg-gray-500"}
+                  ><span id="icon text-white" /><span
+                    class="text-center w-full"
+                    slot="text">Ruka</span
                   ></Addbutton
                 >
               </div>

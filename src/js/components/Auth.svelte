@@ -1,5 +1,6 @@
 <script>
-  import { state } from "../app/store";
+  import { state, projectArry } from "../app/store";
+  import { onMount } from "svelte";
 
   let loading = false;
 
@@ -13,6 +14,8 @@
   let email = "";
   let logres;
 
+  onMount(() => {});
+
   async function login() {
     let body = { username: username, password: password };
     let res = await fetch(`${$state.rest}/jwt-auth/v1/token`, {
@@ -23,21 +26,29 @@
     const data = await res.json();
     logres = data;
 
-    localStorage.setItem("token", JSON.stringify(data.token));
-    let chitoro = localStorage.getItem("token");
-    let tkn = JSON.parse(chitoro);
-    logres = tkn;
-
-    // If login is successful
-
     if (res.status === 200) {
       // Redirect
 
+      localStorage.setItem("user", JSON.stringify(data));
+      let chitoro = localStorage.getItem("user");
+      let tkn = JSON.parse(chitoro);
+      logres = tkn;
+
+      $state.user = data.profile;
+      succ = true;
       setTimeout(() => {
         // window.location = "/";
+        $state.loggedin = true;
       }, 2000);
+
+      const res = await fetch(`${site}/wp/v2/project?author=${$state.user.id}`);
+
+      if (res.ok) {
+        let projects = await res.json();
+        $projectArry = projects;
+      }
+
       // Show Success Message
-      succ = true;
     } else {
       setTimeout(() => {
         //  window.location = "/auth/login";
