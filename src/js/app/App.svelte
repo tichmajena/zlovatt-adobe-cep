@@ -12,8 +12,10 @@
   import * as path from "path";
 
   const paths = csInterface.getExtensionPath();
+  alert(paths.substring(20));
   const syspath = csInterface.getSystemPath("extension");
   //alert("SYS: " + syspath.substring(38, syspath.length));
+
   export let name;
   let variabl;
 

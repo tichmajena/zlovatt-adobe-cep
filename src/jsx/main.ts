@@ -650,16 +650,19 @@ function ruka(proj: any) {
 
     executeAction(stringIDToTypeID("placedLayerEditContents"));
 
+    state.currentLayers = app.activeDocument.layers;
+
     for (var ii = 0; ii < obj[layerName(obj)].length; ii++) {
       var field = obj[layerName(obj)][ii];
 
       runUpdate(field);
     }
     app.activeDocument.close(SaveOptions.SAVECHANGES);
+    state.currentLayers = app.activeDocument.layers;
   }
 
   function updateFolder(obj) {
-    alert("found folder");
+    // alert("found folder");
 
     //var fields = obj[layerName(obj)];
     state.currentLayers = getLayers(obj);
@@ -726,7 +729,6 @@ function ruka(proj: any) {
         }
       }
     }
-    // @ts-ignore
     function replaceSO(file) {
       var idplacedLayerReplaceContents = stringIDToTypeID(
         "placedLayerReplaceContents"

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const aeq: AEQuery = require("aequery");
 
 /**
@@ -11,7 +12,7 @@ const aeq: AEQuery = require("aequery");
 export default function buildError(
   msg: string,
   fileName: string,
-  err?: ESError
+  err: ESError
 ): ZLError {
   /**
    * Gets stack data
@@ -46,7 +47,7 @@ export default function buildError(
   let errorObj: ZLError = {
     message: msg,
     file: fileName,
-    stack: getStack()
+    stack: getStack(),
   };
 
   if (err) {

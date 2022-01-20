@@ -129,6 +129,10 @@ gulp.task("build:cep", function () {
     .pipe(gulp.dest("dist/"));
 });
 
+gulp.task("build:presets", function () {
+  return gulp.src(["./presets/muruki.jsx"]).pipe(gulp.dest("dist/"));
+});
+
 /** Shitty workaround for Windows */
 gulp.task("export:jsxbin", (cb) => {
   var vscExtFolderPath = path.join(os.homedir(), ".vscode", "extensions");
@@ -173,6 +177,10 @@ gulp.task("watch:jsx", function () {
       })
     )
     .pipe(gulp.dest("dist/"));
+});
+
+gulp.task("watch:presets", function () {
+  return gulp.src(["./presets/muruki.jsx"]).pipe(gulp.dest("dist/"));
 });
 
 async function watchCEP(cb) {
@@ -261,12 +269,19 @@ gulp.task("reset", gulp.series(logStatus, clean));
 
 gulp.task(
   "default",
-  gulp.series("reset", gulp.parallel("watch:jsx", watchCEP))
+  gulp.series("reset", gulp.parallel("watch:jsx", "watch:presets", watchCEP))
 );
 
 gulp.task(
   "build",
-  gulp.series("reset", "build:jsx", "build:cep", "export:jsxbin", signPackage)
+  gulp.series(
+    "reset",
+    "build:jsx",
+    "build:cep",
+    "build:presets",
+    "export:jsxbin",
+    signPackage
+  )
 );
 
 // gulp.task("html", function () {

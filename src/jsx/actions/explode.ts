@@ -1,3 +1,4 @@
+// @ts-nocheck
 const aeq: AEQuery = require("aequery");
 
 import Log from "../utils/log";
@@ -10,7 +11,7 @@ export default function explode() {
     a: 1,
     b: true,
     c: "hey",
-    d: { ab: 12, cd: 34 }
+    d: { ab: 12, cd: 34 },
   });
   Log.warn("Warn from ExtendScript!");
 
@@ -18,9 +19,9 @@ export default function explode() {
 
   const layers = aeq.getLayers(comp!);
 
-  if (aeq.isEmpty(layers)) {
-    throw buildError("No layers!", "explode.ts");
-  }
+  // if (aeq.isEmpty(layers)) {
+  //   throw buildError("No layers!", "explode.ts");
+  // }
 
   layers.forEach((layer, ii) => {
     console.log(layer.name);

@@ -17,14 +17,14 @@
     "name": "Muruki",
     "id": "com.muruki.imajenation",
     "debugInProduction": false,
-    "hosts": "AEFT, PHXS, PHSP",
+    "hosts": "AEFT, PHSP, PHXP",
     "extensions": [
       {
         "type": "Panel",
         "id": "com.muruki.imajenation.panel",
         "name": "Muruki",
         "htmlFilename": "./index.html",
-        "panelWidth": 840,
+        "panelWidth": 540,
         "panelHeight": 600,
         "cefParams": [
           "--allow-file-access-from-files",

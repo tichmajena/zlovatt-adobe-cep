@@ -486,6 +486,7 @@
   }
 
   function runRuka() {
+    alert("ruka");
     const host = `$.global["${Config.id}"]`;
 
     sanitizeArry();
@@ -789,8 +790,8 @@
                 {/if}
               {/each}
             {/key}
-            <pre
-              class="text-xs text-white">{JSON.stringify($consol, null, 2)}</pre>
+            <!-- <pre
+              class="text-xs text-white">{JSON.stringify($consol, null, 2)}</pre> -->
           </div>
 
           {#if !$dom.mode.design}

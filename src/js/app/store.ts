@@ -11,6 +11,7 @@ export const time = readable(new Date(), function start(set) {
     clearInterval(interval);
   };
 });
+
 export const consol = writable();
 export const start = new Date();
 export const projectArry = writable([]);
